@@ -11,6 +11,7 @@ from sqlalchemy import (
     ForeignKey,
     DateTime,
     Enum,
+    Boolean,
 )
 from sqlalchemy.orm import relationship
 
@@ -26,7 +27,6 @@ class Testbed(Base):
     __tablename__ = "testbeds"
 
     id = Column(Integer, primary_key=True, index=True)
-    # The hostname of the device. If dual host, use the first hostname and clarify in the description
     name = Column(String(100), nullable=False, unique=True, index=True)
     location = Column(String(100), nullable=True)
     description = Column(Text, nullable=True)
@@ -62,7 +62,7 @@ class SimulationConfig(Base):
     sim_version = Column(String(50), nullable=True)
     os = Column(String(50), nullable=True)
     notes = Column(Text, nullable=True)
-    is_current_config = Column(bool, nullable=True)
+    is_current_config = Column(Boolean, nullable=False, default=False)
 
     testbed = relationship(
         "Testbed",
@@ -94,9 +94,16 @@ class TestRun(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     simulation_config_id = Column(
+        Integer,
+        ForeignKey("simulation_configs.id"),
+        nullable=False,
+        index=True,
+    )
+
+    run_date = Column(
         DateTime,
         nullable=False,
-        default=datetime.timezone.utc,
+        default=datetime.utcnow,
     )
 
     operator = Column(String(100), nullable=True)
@@ -112,5 +119,4 @@ class TestRun(Base):
     config = relationship(
         "SimulationConfig",
         back_populates="runs",
-        cascade="all, delete-orphan",
     )
