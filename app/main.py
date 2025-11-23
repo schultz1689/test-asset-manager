@@ -165,3 +165,17 @@ def list_test_runs(simulation_config_id: int | None = None, db: Session = Depend
 
     runs = query.all()
     return runs
+
+
+@app.get("/testbeds/{testbed_id}/summary", response_model=schemas.TestbedSummary)
+def get_testbed_summary(testbed_id: int, db: Session = Depends(get_db)):
+    """
+    Return a Testbed and its related SimulationConfigs and TestRuns in one nested payload.
+    """
+    testbed = (db.query(models.Testbed).filter(models.Testbed.id == testbed_id).first())
+    if testbed is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Testbed {testbed_id} not found",
+        )
+    return testbed

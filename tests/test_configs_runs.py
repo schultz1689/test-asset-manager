@@ -127,6 +127,33 @@ def test_full_flow_testbed_config_run():
     assert runs_list[0]["operator"] == "Eric"
 
 
+    response = client.get(f"/testbeds/{testbed_id}/summary")
+    assert response.status_code == 200
+
+    summary = response.json()
+
+    assert summary["id"] == testbed_id
+    assert summary["name"] == new_testbed["name"]
+    assert summary["location"] == new_testbed["location"]
+    assert summary["description"] == new_testbed["description"]
+
+    assert len(summary["configs"]) == 1
+    config_summary = summary["configs"][0]
+    assert config_summary["id"] == config_id
+    assert config_summary["name"] == new_config["name"]
+    assert config_summary["sim_version"] == new_config["sim_version"]
+    assert config_summary["os"] == new_config["os"]
+    assert config_summary["notes"] == new_config["notes"]
+    assert config_summary["is_current_config"] is True
+
+    assert len(config_summary["runs"]) == 1
+    run_summary = config_summary["runs"][0]
+    assert run_summary["id"] == run_data["id"]
+    assert run_summary["result"] == new_run["result"]
+    assert run_summary["operator"] == new_run["operator"]
+    assert "run_date" in run_summary
+
+
 def test_create_config_for_nonexistent_testbed_returns_404():
     """
     If we try to create a SimulationConfig for a testbed_id that doesn't exist,
@@ -138,7 +165,7 @@ def test_create_config_for_nonexistent_testbed_returns_404():
     new_config = {
         "testbed_id": 9999,
         "name": "Config pointing to nowhere",
-        "software_version": "0.0.1",
+        "sim_version": "0.0.1",
         "os": "Linux",
         "notes": "This should fail because the testbed doesn't exist",
         "is_current_config": True,
@@ -167,6 +194,17 @@ def test_create_run_for_nonexistent_config_returns_404():
 
     response = client.post("/runs", json=new_run)
 
+    assert response.status_code == 404
+
+    data = response.json()
+    assert "not found" in data["detail"].lower()
+
+
+def test_testbed_summary_not_found():
+    """
+    Asking for the summary of a non-existent testbed should return 404.
+    """
+    response = client.get("/testbeds/9999/summary")
     assert response.status_code == 404
 
     data = response.json()
