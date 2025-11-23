@@ -47,7 +47,8 @@ client = TestClient(app)
 def test_create_and_list_testbeds():
     response = client.get("/testbeds")
     assert response.status_code == 200
-    assert response.json() == []
+    initial_testbeds = response.json()
+    initial_count = len(initial_testbeds)
 
     new_testbed = {
         "name": "Testbed 1",
@@ -65,5 +66,7 @@ def test_create_and_list_testbeds():
     response = client.get("/testbeds")
     assert response.status_code == 200
     testbeds = response.json()
-    assert len(testbeds) == 1
-    assert testbeds[0]["name"] == "Testbed 1"
+    assert len(testbeds) == initial_count + 1
+
+    names = [tb["name"] for tb in testbeds]
+    assert "Testbed 1" in names

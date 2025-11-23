@@ -37,9 +37,10 @@ class SimulationConfigBase(BaseModel):
     """
     testbed_id: int
     name: str
-    software_version: Optional[str] = None
+    sim_version: Optional[str] = None
     os: Optional[str] = None
     notes: Optional[str] = None 
+    is_current_config: bool | None = None
 
 
 class SimulationConfigCreate(SimulationConfigBase):
